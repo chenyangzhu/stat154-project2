@@ -225,8 +225,8 @@ CVGeneric <- function(classifier, img, K, loss_func, cvsplit.method){
   for(k in 1:K){
     
     # CV Training data
-    img.cvtrain <- img[-cv_label[k],]
-    img.cvtest <- img[cv_label[k],]
+    img.cvtrain <- img[-cv_label[[k]],]
+    img.cvtest <- img[cv_label[[k]],]
 
     # Use the remaining cv_label to test
     y.hat <- classifier(img.cvtrain, img.cvtest)
@@ -256,6 +256,28 @@ logistic <- function(img.cvtrain, img.cvtest){
 CVGeneric(logistic, rbind(img.train, img.val), 10, )
 @
 
-\subsection{}
+\subsection{Other Matrics}
+\begin{enumerate}
+\item F1-score. The F1-score is defined as the harmonic mean of precision and recall, which leads to a range of [0,1]. It characterized the accuracy of a test with the best F1-score as 1 and the worst as 0. The major use of F1-score is in natural language processings, as a measurement of the performance of binary classifier. However, the dropback of F-1 score is that it does not take true negatives into account, so even if the model did poorly on predicting the negative, the F-1 score could still have a chance to be good.
+\begin{align*}
+  F_1 = \frac{2}{\text{recall}^{-1} + \text{precision}^{-1}}
+\end{align*}
 
+<<echo=FALSE>>=
+F1 <- function(y.hat, y){
+  # Precision is the ratio of correctly predicted positive observations to the total predicted positive observations. 
+  # Recall is the ratio of correctly predicted positive observations to the all observations in actual class - yes. 
+  # Since we care about label 1, we would focus on label one.
+  
+  P <- sum((y.hat ==y) *  (y == 1)) / sum(y.hat == 1)
+  R <- sum((y.hat ==y) *  (y == 1)) / sum(y == 1)
+  return(2 /((1/P) + (1/R)))
+}
+
+y.hat = c(1,0,-1,1,1)
+y = c(1,-1,-1,1,0)
+F1(y.hat,y)
+@
+
+\end{enumerate}
 \end{document}
