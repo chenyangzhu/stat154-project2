@@ -1,0 +1,261 @@
+\documentclass{article}
+\usepackage{float}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amsthm,amssymb}
+
+
+\begin{document}
+
+\title{Project 2}
+\author{team name}
+
+\maketitle
+
+<<echo=FALSE>>=
+# Read libraries
+library(ggplot2)
+@
+
+<<cache=TRUE, echo = FALSE>>=
+# Read data
+img1 <- read.table("./image_data/image1.txt",header = FALSE)
+img2 <- read.table("./image_data/image2.txt",header = FALSE)
+img3 <- read.table("./image_data/image3.txt",header = FALSE)
+
+col_names <- c('x', 'y', 'label', 'NDAI', 'SD', 'CORR', 'DF','CF','BF','AF','AN')
+colnames(img1) <- col_names
+colnames(img2) <- col_names
+colnames(img3) <- col_names
+data <- rbind(img1, img2)
+data <- rbind(data, img3)
+@
+
+\section{Data Collection and Exploration}
+\subsection{Summary}
+\subsection{Data Exploration}
+The dataset contains three images with information of each of its pixels where eleven features are given to each pixel. The \verb|NDAI|, \verb|SD|, and \verb|CORR| are compupted matrices of radiations and the \verb|DF|, \verb|CF|, \verb|BF|, \verb|AF|, and \verb|AN| are different angles. For the three different images, the number of each classes have different distributions.
+\begin{table}[!hbt]
+    \centering
+    \begin{tabular}{|c|c|c|c|}\hline
+         & \% of Cloud & \% of Ice & \% of Unlabeled \\ \hline
+         image1 & 17.77 & 43.78 & 38.45 \\ \hline
+         image2 & 34.11 & 37.25 & 28.63 \\ \hline 
+         image3 & 18.43 & 29.29 & 52.26 \\ \hline
+    \end{tabular}
+    \caption{Percentage of Classifications}
+    \label{tab:class}
+\end{table}
+
+We can see from the picture that the data points are clustered together, i.e. there are large crowds of clouds or ice. Therefore the data is not i.i.d distributed.
+
+<<cache=TRUE, echo=FALSE, fig.height=2, fig.cap="Visualization. From left to right are three images in our dataset. The color on the map reflects expert's label. Dark grey area for ice, grey area for unidentified and the white area for clouds.", fig.pos="!hbt">>=
+library(ggplot2)
+require(gridExtra)
+par(mfrow=c(3,1))
+plot1 <- ggplot(data=img1) + geom_tile(aes(x=x,y=y,fill=label)) + scale_fill_gradient(low="darkgrey",high="white") + theme_void() + theme(legend.position="none") + xlab("image1")
+plot2 <- ggplot(data=img2) + geom_tile(aes(x=x,y=y,fill=label)) + scale_fill_gradient(low="darkgrey",high="white") + theme_void() + theme(legend.position="none")
+plot3 <- ggplot(data=img3) + geom_tile(aes(x=x,y=y,fill=label)) + scale_fill_gradient(low="darkgrey",high="white") + theme_void()
+grid.arrange(plot1, plot2, plot3, ncol=3)
+
+# ggplot(data=img3) + geom_point(aes(x=NDAI, y = CORR, color=label),alpha = 0.1,size = 0.1)+ scale_fill_gradient(low="red",high="green")
+# ggplot(data=img3) + geom_point(aes(x=SD, y = CORR, color=label),alpha = 0.1,size = 0.1)+ scale_fill_gradient(low="red",high="green")
+
+@
+\subsection{EDA}
+
+
+\section{Preperation}
+\subsection{Data Split}
+\begin{enumerate}
+\item The first method is to make sure that the proportion of each label in different sets remain the same. To do this, we split the each image into three categories with respect to each label, and we then splite test and validation set randomly on each subset. Finally we combine the three images together.
+<<cache=TRUE, echo= FALSE>>=
+alpha = 0.2 # proportion of test set
+beta = 0.2  # proportion of validation set
+
+split.method1 <- function(img1, alpha, beta){
+  img1.test = img1[1,]
+  img1.val = img1[1,]
+  img1.train = img1[1,]
+  
+  for (i in c(-1,0,1)){
+    img1.cloud = img1[img1$label == i,]
+    test_label = sample(1:nrow(img1.cloud), size = floor(alpha * nrow(img1.cloud)))
+    img1.cloud.test = img1.cloud[test_label,]
+    img1.cloud.train_and_val = img1.cloud[-test_label,]
+    val_label = sample(1:nrow(img1.cloud.train_and_val), size = floor(alpha * nrow(img1.cloud.train_and_val)))
+    img1.cloud.val = img1.cloud.train_and_val[val_label, ]
+    img1.cloud.train = img1.cloud.train_and_val[-val_label, ]
+    
+    # Save it to the large test val and train
+    img1.test = rbind(img1.test, img1.cloud.test)
+    img1.val = rbind(img1.val, img1.cloud.val)
+    img1.train = rbind(img1.train, img1.cloud.train)
+  }
+  
+  # Delete the first row and shuffle
+  # Second line is for shuffling
+  img1.test = img1.test[2:nrow(img1.test),]
+  img1.test <- img1.test[sample(1:nrow(img1.test)), ]
+  img1.val = img1.val[2:nrow(img1.val),]
+  img1.val <- img1.val[sample(1:nrow(img1.val)), ]
+  img1.train = img1.train[2:nrow(img1.train),]
+  img1.train <- img1.train[sample(1:nrow(img1.train)), ]
+  return(list(img1.test,img1.val,img1.train))
+}
+
+result = split.method1(img1, alpha, beta)
+img1.test = as.data.frame(result[1])
+img1.val = as.data.frame(result[2])
+img1.train =as.data.frame(result[3])
+
+result = split.method1(img2, alpha, beta)
+img2.test = as.data.frame(result[1])
+img2.val = as.data.frame(result[2])
+img2.train =as.data.frame(result[3])
+
+result = split.method1(img3, alpha, beta)
+img3.test = as.data.frame(result[1])
+img3.val = as.data.frame(result[2])
+img3.train =as.data.frame(result[3])
+
+img.test = rbind(img1.test, img2.test, img3.test)
+img.train = rbind(img1.train, img2.train, img3.train)
+img.val = rbind(img1.val, img2.val, img3.val)
+@
+\end{enumerate}
+
+
+\subsection{Baseline Trivial Classifier}
+To set all labels to -1 and test average accuracy is essentially the same as computing the proportion of all \verb|-1| rows. Since we split the dataset with respect to label proportions, the \verb|test| and \verb|val| both has 36.78\% of \verb|-1| rows, which means that the trivial classifier would have an accuracy of 36.78\%. This is a better result than random guessing.
+<<echo=FALSE>>=
+# sum(img.test$label==-1)/nrow(img.test)
+# sum(img.val$label==-1)/nrow(img.val)
+# sum(img.train$label==-1)/nrow(img.train)
+@
+
+\subsection{First Order Importance}
+Our main goal is to come up with the features that are the most stable and powerful classifier of label. We introduce the notation $x^{(i)}$ as the $i$th feature from design matrix. To be more specific on the constraint, all features must satisfy the following criteria, $\forall i\in[1,p]$,
+\begin{enumerate}
+  \item We want to maximize the overall possibility of determining the cloud's existence given this feature.
+\begin{align*}
+x^{(i)} := \arg\max_{i} \int \mathbb{P}(y_i|x^{(i)}) dx^{(i)} & 
+\end{align*}
+  \item We also want to have stable or smooth possibility so that our prediction would be more robust. That is $\forall i\in[1,p]$ and some constant $L$.
+\begin{align*}
+|\mathbb{P}(y_i|x^{(i)}_1) - \mathbb{P}(y_i|x^{(i)}_2)| < L |x^{(i)}_1 - x^{(i)}_2|
+\end{align*}
+\end{enumerate}
+
+<<echo = FALSE, cache = TRUE, fig.height=4, fig.cap="Conditional Density Plot of all variables. The white area indicates the probability of being classified into one. The red line indicates random guess 0.33.", fig.lp = "cdp">>=
+
+# Using data
+# ggplot(data=img3) + geom_point(aes(x=NDAI, y = NDAI, color=label),alpha = 0.1,size = 0.1)+ scale_fill_gradient(low="red",high="green")
+# ggplot(data=img3) + geom_point(aes(x=NDAI, y = label),alpha = 0.1,size = 0.1)
+
+par(mfrow=c(2,4), mar=c(4,2,2,2))
+cdplot(factor(label) ~ SD, data = data)
+abline(h=2/3, col="red")
+cdplot(factor(label) ~ NDAI, data = data)
+abline(h=2/3, col="red")
+cdplot(factor(label) ~ CORR, data = data)
+abline(h=2/3, col="red")
+cdplot(factor(label) ~ DF, data = data)
+abline(h=2/3, col="red")
+cdplot(factor(label) ~ CF, data = data)
+abline(h=2/3, col="red")
+cdplot(factor(label) ~ BF, data = data)
+abline(h=2/3, col="red")
+cdplot(factor(label) ~ AF, data = data)
+abline(h=2/3, col="red")
+cdplot(factor(label) ~ AN, data = data)
+abline(h=2/3, col="red")
+@
+
+We observe the following patterns on all our data points. In Figure (2), we see all 8 variables' conditional probability plots. We can simply observe that to satisfy Criteria (a) and (b), this lead to the three best predictors \verb|CORR|, \verb|NDAI| and \verb|AN|.
+
+\subsection{CV Generic}
+\textbf{Hide this part in Report and write into Github}
+<<echo=FALSE>>=
+cvsplit.method1 <- function(img, K){
+  # K-fold
+  # img is image
+  # TODOTODOTODO
+  # Output: CV-label!
+  
+  img.cvlist <- list()
+  for (i in c(-1,1)){
+    img.specific = img[img$label == i,]
+    # print(img.specific_label)
+    shuffled_label = sample(1:nrow(img.specific))
+    # print(shuffled_label)
+    
+    chunk_size = floor(length(shuffled_label) / K)
+    # print(chunk_size)
+    
+    for(k in 1:K){
+      start = chunk_size * (k-1)+1
+      end = chunk_size * k
+      # print(img.specific)
+      print(start)
+      print(end)
+      img.k <- shuffled_label[start:end]
+      # print(img.k)
+      # print(as.data.frame(img.cvlist[k]))
+      img.cvlist[[k]] <- img.k
+      # print(img.cvlist[k])
+    }
+  }
+  return(img.cvlist)
+}
+lst = cvsplit.method1(img1,10)
+
+CVGeneric <- function(classifier, img, K, loss_func, cvsplit.method){
+  # Input:
+    # Classifier:     function    some classifier
+    # img:            dataframe   training X matrix  and labels
+    # K:              int         K-fold CV
+    # loss_func:      function    some loss function
+  # Output:
+    # K-fold CV loss  float       loss  
+  
+  cv_label <- cvsplit.method(img, K)
+  loss <- 0
+  acc <- list()
+  
+  for(k in 1:K){
+    
+    # CV Training data
+    img.cvtrain <- img[-cv_label[k],]
+    img.cvtest <- img[cv_label[k],]
+
+    # Use the remaining cv_label to test
+    y.hat <- classifier(img.cvtrain, img.cvtest)
+    
+    # TODO notice that classifiers will not return the same labeling as the true label
+    # Should swap signs
+    
+    loss = loss + loss_func(y.hat, y.cvtest) / nrow(y.hat)
+    acc[[k]] <- sum(abs(y.hat - y.cvtest)) / nrow(y.hat)
+    
+  }
+  return(loss/K)
+}
+@
+
+\section{Modeling}
+\subsection{Logistic Regression}
+<<>>=
+library(caret)
+
+# Logistic Regression
+logistic <- function(img.cvtrain, img.cvtest){
+  model <- glm(label ~ CORR + NDAI + AN, data=img.cvtrain, family = "binomial")
+  return(predict(model, img.cvtest))
+}
+
+CVGeneric(logistic, rbind(img.train, img.val), 10, )
+@
+
+\subsection{}
+
+\end{document}
