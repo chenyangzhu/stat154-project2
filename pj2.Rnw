@@ -177,6 +177,7 @@ We observe the following patterns on all our data points. In Figure (2), we see 
 \textbf{Hide this part in Report and write into Github}
 <<echo=FALSE>>=
 cvsplit.method1 <- function(img, K){
+  print("splitting")
   # K-fold
   # img is image
   # TODOTODOTODO
@@ -196,8 +197,8 @@ cvsplit.method1 <- function(img, K){
       start = chunk_size * (k-1)+1
       end = chunk_size * k
       # print(img.specific)
-      print(start)
-      print(end)
+      # print(start)
+      # print(end)
       img.k <- shuffled_label[start:end]
       # print(img.k)
       # print(as.data.frame(img.cvlist[k]))
@@ -205,8 +206,10 @@ cvsplit.method1 <- function(img, K){
       # print(img.cvlist[k])
     }
   }
+  print("Returning img.cvlist")
   return(img.cvlist)
 }
+
 lst = cvsplit.method1(img1,10)
 
 CVGeneric <- function(classifier, img, K, loss_func, cvsplit.method){
@@ -223,12 +226,19 @@ CVGeneric <- function(classifier, img, K, loss_func, cvsplit.method){
   acc <- list()
   
   for(k in 1:K){
+    print("Doing CV")
+    print(k)
     
     # CV Training data
     img.cvtrain <- img[-cv_label[[k]],]
     img.cvtest <- img[cv_label[[k]],]
+    print("Data Splitted")
+    
+    img.cvtrain[img.cvtrain$label == -1,]$label = 0
+    img.cvtest[img.cvtest$label == -1,]$label = 0
 
     # Use the remaining cv_label to test
+    print("Predicting y.hat")
     y.hat <- classifier(img.cvtrain, img.cvtest)
     
     # TODO notice that classifiers will not return the same labeling as the true label
@@ -236,9 +246,12 @@ CVGeneric <- function(classifier, img, K, loss_func, cvsplit.method){
     
     loss = loss + loss_func(y.hat, y.cvtest) / nrow(y.hat)
     acc[[k]] <- sum(abs(y.hat - y.cvtest)) / nrow(y.hat)
-    
   }
   return(loss/K)
+}
+
+default_loss <- function(y.hat, y.cvtest){
+  return((y.hat - y.cvtest))
 }
 @
 
@@ -253,7 +266,9 @@ logistic <- function(img.cvtrain, img.cvtest){
   return(predict(model, img.cvtest))
 }
 
-CVGeneric(logistic, rbind(img.train, img.val), 10, )
+CVGeneric(logistic, rbind(img.train, img.val),
+          K = 10, loss_func =  ,
+          cvsplit.method = cvsplit.method1)
 @
 
 \subsection{Other Matrics}
