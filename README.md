@@ -1,7 +1,7 @@
 
 ![alt text](https://github.com/chenyangzhu/stat154-project2/raw/master/image/Figure_1a_img1_vis.png)
 
-# Cloud Detection with Bancroft Model
+# Cloud Detection at Poles with Bancroft Transformation
 ### Flying Ramen Pokémon
 Chenyang Zhu and Ling Xie, UC Berkeley
 
@@ -28,13 +28,16 @@ The structure of this repository is as follows.
      ├── CVGeneric.py
      └── detail_explanation.ipynb
 ├── data
-    ├── im1.csv
-    ├── im2.csv
+    ├── img1.csv
+    ├── img2.csv
     └── img3.csv
-└── image
+├── image
     ├── Figure_1a_img1_vis.png
     ...
     └── Figure_11b_feature_importance.png
+└── paper
+    ├── paper.tex
+    └── paper.pdf
 ```
 We store all the codes in `codes` file, all the data we used in `data` and all the beautiful pictures in `image`.
 You can also see a detailed tutorial in the `detail_explanation.ipynb` file.
