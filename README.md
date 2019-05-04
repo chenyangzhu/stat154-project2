@@ -22,6 +22,7 @@ jupyter-notebook
 
 The structure of this repository is as follows.
 ```
+.
 ├── code
      ├── all_codes.py
      ├── CVGeneric.py
@@ -30,7 +31,7 @@ The structure of this repository is as follows.
     ├── im1.csv
     ├── im2.csv
     └── img3.csv
-├── image
+└── image
     ├── Figure_1a_img1_vis.png
     ...
     └── Figure_11b_feature_importance.png
