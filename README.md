@@ -23,7 +23,9 @@ jupyter-notebook
 The structure of this repository is as follows.
 ```
 ├── code
-|    └── codes.py
+     ├── all_codes.py
+     ├── CVGeneric.py
+     └── detail_explanation.ipynb
 ├── data
     ├── im1.csv
     ├── im2.csv
@@ -34,7 +36,7 @@ The structure of this repository is as follows.
     └── Figure_11b_feature_importance.png
 ```
 We store all the codes in `codes` file, all the data we used in `data` and all the beautiful pictures in `image`.
-
+You can also see a detailed tutorial in the `detail_explanation.ipynb` file.
 
 
 ## Major Results
