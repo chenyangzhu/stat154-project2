@@ -37,7 +37,7 @@ We store all the codes in `codes` file, all the data we used in `data` and all t
 
 
 
-## Research Methodology
+## Major Results
 
 We apply four common classification algorithms to the detection problem and the results are shown in the following charts.
 
@@ -47,3 +47,20 @@ We apply four common classification algorithms to the detection problem and the 
 | time                | 8.1s     | 8.1s    | 2.6s     | 2.6s    | 1.0s     | 1.0s    | 283s        | 283s        |
 | Validation Accuracy | 0.8703   | 0.9025  | 0.8722   | 0.8732  | 0.8732   | 0.8359  | 0.9534      | 0.9358      |
 | Test Accuracy       | 0.8911   | 0.9220  | 0.8990   | 0.9271  | 0.9063   | 0.9120  | 0.9450      | 0.9300      |
+
+We use ROC Curve, F1 score and log-loss function to show that the best algorithm is random forest, we then tune the random forest algorithm. The result is,
+
+| CV Method       | Min Samples Split | Tree Number | Val. Acc. | Val. All. | Max Depth |
+|-----------------|-------------------|-------------|-----------|-----------|-----------|
+| Balanced Method | 300               | 200         | 30        | 0.9424    | 0.9526    |
+| Spatial Method  | 300               | 50          | 10        | 0.8980    | 0.9103    |
+
+Finally, we apply the Bancroft method, and we show that Bancroft model has the best classification result.
+
+![alt text](https://github.com/chenyangzhu/stat154-project2/raw/master/image/Figure_11a_new_feature_vis.png)
+
+## Contact
+
+Ling Xie,  xieling {at} berkeley {dot} edu
+
+Chenyang Zhu, chenyang {dot} zhu {at} berkeley {dot} edu
